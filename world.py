@@ -4,49 +4,53 @@ import random
 import pygame
 
 
-BLACK = (0, 0, 255)
+BLACK = (0, 0, 0)
 BACKGROUND = (255, 255, 255)
 SCREEN_SIZE = (800, 800)
 NUM_PARTICLES = 10
 
 
-class Particle():
-    def __init__(self, x_pos, y_pos, vx, vy, radius):
+class State():
+    def __init__(self, x_pos, y_pos, vx, vy):
         self.x_pos = x_pos
         self.y_pos = y_pos
-
         self.vx = vx
         self.vy = vy
 
+
+class Particle():
+    def __init__(self, state, radius, color=BLACK):
+        self.state = state
+
         self.radius = radius
-        self.color = BLACK
+        self.color = color
 
         self.screen = pygame.display.get_surface()
 
     def draw(self):
-        pos = (self.x_pos, self.y_pos)
+        pos = (self.state.x_pos, self.state.y_pos)
         pygame.draw.circle(self.screen, self.color, pos, self.radius)
 
     def update(self):
         self.update_velocity()
 
-        self.x_pos += self.vx
-        self.y_pos += self.vy
+        self.state.x_pos += self.state.vx
+        self.state.y_pos += self.state.vy
 
     def update_velocity(self):
         if self.crosses_x_border():
-            self.vx = -self.vx
+            self.state.vx = -self.state.vx
         if self.crosses_y_border():
-            self.vy = -self.vy
+            self.state.vy = -self.state.vy
 
     def crosses_x_border(self):
         width = self.screen.get_width()
-        dx = self.x_pos + self.vx
+        dx = self.state.x_pos + self.state.vx
         return dx > width or dx < 0
 
     def crosses_y_border(self):
         height = self.screen.get_height()
-        dy = self.y_pos + self.vy
+        dy = self.state.y_pos + self.state.vy
         return dy > height or dy < 0
 
 
@@ -64,19 +68,16 @@ def main():
     pygame.display.flip()
 
     # Add particles
-    p = Particle(50, 50, 3, -10, 5)
-    x = Particle(35, 150, -4, -2, 4)
-
     particles = []
 
     for i in range(0, NUM_PARTICLES):
-        p = Particle(
+        rand_state = State(
             random.randint(0, screen.get_width()),
             random.randint(0, screen.get_height()),
             random.randint(-5, 5),
-            random.randint(-5, 5),
-            random.randint(2, 7))
-        particles.append(p)
+            random.randint(-5, 5))
+        rand_radius = random.randint(2, 7)
+        particles.append(Particle(rand_state, rand_radius))
 
     # Prepare display objects
     clock = pygame.time.Clock()
