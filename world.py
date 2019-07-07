@@ -1,10 +1,13 @@
-import os, sys
+import os
+import sys
+import random
 import pygame
 
 
 BLACK = (0, 0, 255)
 BACKGROUND = (255, 255, 255)
 SCREEN_SIZE = (800, 800)
+NUM_PARTICLES = 10
 
 
 class Particle():
@@ -21,7 +24,8 @@ class Particle():
         self.screen = pygame.display.get_surface()
 
     def draw(self):
-        pygame.draw.circle(self.screen, self.color, (self.x_pos, self.y_pos), self.radius)
+        pos = (self.x_pos, self.y_pos)
+        pygame.draw.circle(self.screen, self.color, pos, self.radius)
 
     def update(self):
         self.update_velocity()
@@ -61,6 +65,18 @@ def main():
 
     # Add particles
     p = Particle(50, 50, 3, -10, 5)
+    x = Particle(35, 150, -4, -2, 4)
+
+    particles = []
+
+    for i in range(0, NUM_PARTICLES):
+        p = Particle(
+            random.randint(0, screen.get_width()),
+            random.randint(0, screen.get_height()),
+            random.randint(-5, 5),
+            random.randint(-5, 5),
+            random.randint(2, 7))
+        particles.append(p)
 
     # Prepare display objects
     clock = pygame.time.Clock()
@@ -75,11 +91,13 @@ def main():
                 running = False
 
         # Update particle positions
-        p.update()
+        for particle in particles:
+            particle.update()
 
         # Draw everything
         screen.blit(background, (0, 0))
-        p.draw()
+        for particle in particles:
+            particle.draw()
         pygame.display.flip()
 
 
