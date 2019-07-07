@@ -25,11 +25,25 @@ class Particle():
 
     def update(self):
         self.update_velocity()
+
         self.x_pos += self.vx
         self.y_pos += self.vy
 
     def update_velocity(self):
-        self.vy += 1
+        if self.crosses_x_border():
+            self.vx = -self.vx
+        if self.crosses_y_border():
+            self.vy = -self.vy
+
+    def crosses_x_border(self):
+        width = self.screen.get_width()
+        dx = self.x_pos + self.vx
+        return dx > width or dx < 0
+
+    def crosses_y_border(self):
+        height = self.screen.get_height()
+        dy = self.y_pos + self.vy
+        return dy > height or dy < 0
 
 
 def main():
@@ -53,7 +67,7 @@ def main():
 
     running = True
     while running:
-        clock.tick(10)
+        clock.tick(60)
 
         # Handle input events
         for event in pygame.event.get():
