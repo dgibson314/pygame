@@ -9,15 +9,17 @@ BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
+YELLOW = (255, 215, 0)
 
 SCREEN_SIZE = (1500, 1500)
-CLOCK = 10
+CLOCK = 60
 
 NUM_PARTICLES = 0
 NUM_BUBBLES = 0
-NUM_PLANETS = 20
+NUM_PLANETS = 4
 
-STRENTH_OF_GRAVITY = 1.e3
+STRENTH_OF_GRAVITY = 1.e2
+DENSITY = 0.001
 
 PLANETS = []
 
@@ -43,7 +45,7 @@ class Particle():
         self.screen = pygame.display.get_surface()
 
     def draw(self):
-        pos = (self.state.x_pos, self.state.y_pos)
+        pos = (int(self.state.x_pos), int(self.state.y_pos))
         pygame.draw.circle(self.screen, self.color, pos, self.radius)
 
     def update(self):
@@ -85,17 +87,25 @@ class Bubble(Particle):
         pygame.draw.circle(self.screen, self.color, pos, self.radius, self.thickness)
 
 
-class Planet(Particle):
-    def __init__(self, state, radius, mass, color=GREEN):
+class Sun(Particle):
+    def __init__(self, state, radius, color=YELLOW):
         Particle.__init__(self, state, radius, color)
-        self.mass = mass
+        self.mass = self.mass_from_radius()
+
+    def __repr__(self):
+        return 'Sun: ' + repr(self.state)
+
+
+class Planet(Particle):
+    def __init__(self, state, radius, color=GREEN):
+        Particle.__init__(self, state, radius, color)
+        self.mass = self.mass_from_radius()
 
     def __repr__(self):
         return 'Planet: ' + repr(self.state)
 
-    def draw(self):
-        pos = (int(self.state.x_pos), int(self.state.y_pos))
-        pygame.draw.circle(self.screen, self.color, pos, self.radius)
+    def mass_from_radius(self):
+        return DENSITY * 4/3 * math.pi * (self.radius ** 3)
 
     def update_velocity(self):
         ax = 0.0
@@ -184,7 +194,6 @@ def main():
                     bubble.update()
         for planet in PLANETS:
             planet.update()
-            print(planet)
 
         # Draw everything
         screen.blit(background, (0, 0))
