@@ -10,11 +10,14 @@ BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 
-SCREEN_SIZE = (1000, 1000)
-NUM_PARTICLES = 10
-NUM_BUBBLES = 20
+SCREEN_SIZE = (1500, 1500)
+CLOCK = 10
 
-STRENTH_OF_GRAVITY = 1.e4
+NUM_PARTICLES = 0
+NUM_BUBBLES = 0
+NUM_PLANETS = 20
+
+STRENTH_OF_GRAVITY = 1.e3
 
 PLANETS = []
 
@@ -87,6 +90,13 @@ class Planet(Particle):
         Particle.__init__(self, state, radius, color)
         self.mass = mass
 
+    def __repr__(self):
+        return 'Planet: ' + repr(self.state)
+
+    def draw(self):
+        pos = (int(self.state.x_pos), int(self.state.y_pos))
+        pygame.draw.circle(self.screen, self.color, pos, self.radius)
+
     def update_velocity(self):
         ax = 0.0
         ay = 0.0
@@ -102,8 +112,8 @@ class Planet(Particle):
                 ax += force * delta_x / distance
                 ay += force * delta_y / distance
 
-        self.state.vx += ax
-        self.state.vy += ay
+        self.state.vx -= ax
+        self.state.vy -= ay
 
 
 def main():
@@ -141,19 +151,30 @@ def main():
         rand_radius = random.randint(15, 20)
         bubbles.append(Bubble(rand_state, rand_radius, 2))
 
+    # Generate Planets
+    for i in range(0, NUM_PLANETS):
+        rand_state = State(
+            float(random.randint(0, screen.get_width())),
+            float(random.randint(0, screen.get_height())),
+            0,
+            0)
+        rand_radius = random.randint(6, 10)
+        rand_mass = random.randint(1, 5)
+        PLANETS.append(Planet(rand_state, rand_radius, rand_mass))
+
     # Prepare display objects
     clock = pygame.time.Clock()
 
     running = True
     while running:
-        clock.tick(60)
+        clock.tick(CLOCK)
 
         # Handle input events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-        # Update particle positions
+        # Update object positions
         for particle in particles:
             particle.update()
             for bubble in bubbles:
@@ -161,6 +182,9 @@ def main():
                     bubbles.remove(bubble)
                 else:
                     bubble.update()
+        for planet in PLANETS:
+            planet.update()
+            print(planet)
 
         # Draw everything
         screen.blit(background, (0, 0))
@@ -168,6 +192,8 @@ def main():
             particle.draw()
         for bubble in bubbles:
             bubble.draw()
+        for planet in PLANETS:
+            planet.draw()
         pygame.display.flip()
 
 
