@@ -7,11 +7,16 @@ import pygame
 
 BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 
 SCREEN_SIZE = (1000, 1000)
 NUM_PARTICLES = 10
 NUM_BUBBLES = 20
+
+STRENTH_OF_GRAVITY = 1.e4
+
+PLANETS = []
 
 
 class State():
@@ -32,7 +37,6 @@ class Particle():
 
         self.radius = radius
         self.color = color
-
         self.screen = pygame.display.get_surface()
 
     def draw(self):
@@ -76,6 +80,30 @@ class Bubble(Particle):
     def draw(self):
         pos = (self.state.x_pos, self.state.y_pos)
         pygame.draw.circle(self.screen, self.color, pos, self.radius, self.thickness)
+
+
+class Planet(Particle):
+    def __init__(self, state, radius, mass, color=GREEN):
+        Particle.__init__(self, state, radius, color)
+        self.mass = mass
+
+    def update_velocity(self):
+        ax = 0.0
+        ay = 0.0
+
+        for planet in PLANETS:
+            if planet is not self:
+                delta_x = self.state.x_pos - planet.state.x_pos
+                delta_y = self.state.y_pos - planet.state.y_pos
+                distance = math.sqrt(delta_x ** 2 + delta_y ** 2)
+
+                force = STRENTH_OF_GRAVITY * self.mass * planet.mass / distance**2
+
+                ax += force * delta_x / distance
+                ay += force * delta_y / distance
+
+        self.state.vx += ax
+        self.state.vy += ay
 
 
 def main():
