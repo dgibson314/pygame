@@ -1,5 +1,6 @@
 import os
 import sys
+import math
 import random
 import pygame
 
@@ -8,9 +9,9 @@ BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
 
-SCREEN_SIZE = (800, 800)
+SCREEN_SIZE = (1000, 1000)
 NUM_PARTICLES = 10
-NUM_SHELLS = 5
+NUM_BUBBLES = 20
 
 
 class State():
@@ -60,8 +61,14 @@ class Particle():
         dy = self.state.y_pos + self.state.vy
         return dy > height or dy < 0
 
+    def touching(self, particle):
+        delta_x = self.state.x_pos - particle.state.x_pos
+        delta_y = self.state.y_pos - particle.state.y_pos
+        distance = math.sqrt(delta_x ** 2 + delta_y ** 2)
+        return distance <= (self.radius + particle.radius)
 
-class Shell(Particle):
+
+class Bubble(Particle):
     def __init__(self, state, radius, thickness, color=BLUE):
         Particle.__init__(self, state, radius, color)
         self.thickness = thickness
@@ -86,7 +93,7 @@ def main():
 
     # Add particles and shells
     particles = []
-    shells = []
+    bubbles = []
 
     for i in range(0, NUM_PARTICLES):
         rand_state = State(
@@ -97,14 +104,14 @@ def main():
         rand_radius = random.randint(2, 7)
         particles.append(Particle(rand_state, rand_radius))
 
-    for i in range(0, NUM_SHELLS):
+    for i in range(0, NUM_BUBBLES):
         rand_state = State(
             random.randint(0, screen.get_width()),
             random.randint(0, screen.get_height()),
-            random.randint(-2, 2),
-            random.randint(-2, 2))
-        rand_radius = random.randint(5, 9)
-        shells.append(Shell(rand_state, rand_radius, 2))
+            random.randint(-1, 1),
+            random.randint(-1, 1))
+        rand_radius = random.randint(15, 20)
+        bubbles.append(Bubble(rand_state, rand_radius, 2))
 
     # Prepare display objects
     clock = pygame.time.Clock()
@@ -121,15 +128,18 @@ def main():
         # Update particle positions
         for particle in particles:
             particle.update()
-        for shell in shells:
-            shell.update()
+            for bubble in bubbles:
+                if particle.touching(bubble):
+                    bubbles.remove(bubble)
+                else:
+                    bubble.update()
 
         # Draw everything
         screen.blit(background, (0, 0))
         for particle in particles:
             particle.draw()
-        for shell in shells:
-            shell.draw()
+        for bubble in bubbles:
+            bubble.draw()
         pygame.display.flip()
 
 
