@@ -11,15 +11,16 @@ GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 YELLOW = (255, 215, 0)
 
-SCREEN_SIZE = (1500, 1500)
-CLOCK = 60
+SCREEN_SIZE = (1800, 1200)
+CLOCK = 40
 
 NUM_PARTICLES = 0
 NUM_BUBBLES = 0
-NUM_PLANETS = 4
+NUM_PLANETS = 20
 
 STRENTH_OF_GRAVITY = 1.e2
-DENSITY = 0.001
+PLANET_DENSITY = 0.001
+SUN_DENSITY = 0.01
 
 PLANETS = []
 
@@ -95,6 +96,9 @@ class Sun(Particle):
     def __repr__(self):
         return 'Sun: ' + repr(self.state)
 
+    def mass_from_radius(self):
+        return SUN_DENSITY * 4/3 * math.pi * (self.radius ** 3)
+
 
 class Planet(Particle):
     def __init__(self, state, radius, color=GREEN):
@@ -105,7 +109,7 @@ class Planet(Particle):
         return 'Planet: ' + repr(self.state)
 
     def mass_from_radius(self):
-        return DENSITY * 4/3 * math.pi * (self.radius ** 3)
+        return PLANET_DENSITY * 4/3 * math.pi * (self.radius ** 3)
 
     def update_velocity(self):
         ax = 0.0
@@ -164,13 +168,15 @@ def main():
     # Generate Planets
     for i in range(0, NUM_PLANETS):
         rand_state = State(
-            float(random.randint(0, screen.get_width())),
-            float(random.randint(0, screen.get_height())),
-            0,
-            0)
+            float(random.randint(100, screen.get_width()-100)),
+            float(random.randint(100, screen.get_height()-100)),
+            random.random() * 15,
+            random.random() * 15)
         rand_radius = random.randint(6, 10)
-        rand_mass = random.randint(1, 5)
-        PLANETS.append(Planet(rand_state, rand_radius, rand_mass))
+        PLANETS.append(Planet(rand_state, rand_radius))
+
+    sun_state = State(900, 600, 0, 0)
+    PLANETS.append(Sun(sun_state, 30))
 
     # Prepare display objects
     clock = pygame.time.Clock()
