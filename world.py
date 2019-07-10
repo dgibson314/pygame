@@ -38,7 +38,7 @@ class State():
 
 
 class Particle():
-    def __init__(self, state, radius, color=BLACK):
+    def __init__(self, state, radius, color=WHITE):
         self.state = state
 
         self.radius = radius
@@ -88,18 +88,6 @@ class Bubble(Particle):
         pygame.draw.circle(self.screen, self.color, pos, self.radius, self.thickness)
 
 
-class Sun(Particle):
-    def __init__(self, state, radius, color=YELLOW):
-        Particle.__init__(self, state, radius, color)
-        self.mass = self.mass_from_radius()
-
-    def __repr__(self):
-        return 'Sun: ' + repr(self.state)
-
-    def mass_from_radius(self):
-        return SUN_DENSITY * 4/3 * math.pi * (self.radius ** 3)
-
-
 class Planet(Particle):
     def __init__(self, state, radius, color=GREEN):
         Particle.__init__(self, state, radius, color)
@@ -130,6 +118,41 @@ class Planet(Particle):
         self.state.vy -= ay
 
 
+class Sun(Particle):
+    def __init__(self, state, radius, color=YELLOW):
+        Particle.__init__(self, state, radius, color)
+        self.mass = self.mass_from_radius()
+
+    def __repr__(self):
+        return 'Sun: ' + repr(self.state)
+
+    def mass_from_radius(self):
+        return SUN_DENSITY * 4/3 * math.pi * (self.radius ** 3)
+
+
+class Universe():
+    def __init__(self):
+        self.objects = []
+
+    def update(self):
+        merged = []
+        for body in self.objects:
+            body.update()
+            for other in self.objects:
+                if body is not other:
+                    if body.touching(other):
+                        merged_body = self.merge(body, other)
+                        merged.append(merged_body)
+
+    def merge(self, x, y):
+        '''
+        Takes two objects, probably Planets, and returns
+        a new Planet, with the combined mass and momentum
+        of the old two Planets.
+        '''
+        pass
+
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode(SCREEN_SIZE)
@@ -137,7 +160,7 @@ def main():
     # Create the background
     background = pygame.Surface(screen.get_size())
     background = background.convert()
-    background.fill(WHITE)
+    background.fill(BLACK)
 
     # Display the background
     screen.blit(background, (0, 0))
