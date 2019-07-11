@@ -99,6 +99,14 @@ class Planet(Particle):
     def mass_from_radius(self):
         return PLANET_DENSITY * 4/3 * math.pi * (self.radius ** 3)
 
+    @staticmethod
+    def radius_from_mass(mass):
+        '''
+        Used to determine new radius for Planet mergers.
+        '''
+        return ((3 / (4 * math.pi)) * (mass / PLANET_DENSITY)) ** 1./3
+        pass
+
     def update_velocity(self):
         ax = 0.0
         ay = 0.0
@@ -144,13 +152,28 @@ class Universe():
                         merged_body = self.merge(body, other)
                         merged.append(merged_body)
 
+                        self.objects.remove(body)
+                        self.objects.remove(other)
+        self.objects.extend(merged)
+
     def merge(self, x, y):
         '''
         Takes two objects, probably Planets, and returns
-        a new Planet, with the combined mass and momentum
+        a new Planet, with the combined mass and velocity
         of the old two Planets.
+            Combined mass is just the sum of both Planets'
+        masses. New velocity is a bit trickier. We know that
+        momentum must be conserved.
         '''
-        pass
+        new_vx = x.mass * x.state.vx + y.mass + y.state.vx
+        new_vy = x.mass * x.state.vy + y.mass + y.state.vy
+        # NOTE: used position of x Planet, consider doing something else?
+        new_state = State(x.state.x_pos, x.state.y_pos, new_vx, new_vy)
+
+        new_mass = x.mass + y.mass
+        new_radius = int(Planet.radius_from_mass(new_mass))
+
+        return Planet(new_state, new_radius)
 
 
 def main():
