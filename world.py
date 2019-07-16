@@ -103,9 +103,12 @@ class Planet(Particle):
     def radius_from_mass(mass):
         '''
         Used to determine new radius for Planet mergers.
+        TODO: fix this lol
         '''
-        return ((3 / (4 * math.pi)) * (mass / PLANET_DENSITY)) ** 1./3
-        pass
+        # return ((3 / (4 * math.pi)) * (mass / PLANET_DENSITY)) ** 1./3
+        scale = (3. / (4. * math.pi))
+        factor = mass / PLANET_DENSITY
+        return (scale * factor) ** (1. / 3)
 
     def update_velocity(self):
         ax = 0.0
@@ -140,21 +143,43 @@ class Sun(Particle):
 
 class Universe():
     def __init__(self):
-        self.objects = []
+        self.planets = []
+        self.stars = []
 
     def update(self):
         merged = []
-        for body in self.objects:
-            body.update()
-            for other in self.objects:
+        for body in self.planets:
+            self.update_planet(body)
+            for other in self.planets:
                 if body is not other:
                     if body.touching(other):
                         merged_body = self.merge(body, other)
                         merged.append(merged_body)
 
-                        self.objects.remove(body)
-                        self.objects.remove(other)
-        self.objects.extend(merged)
+                        self.planets.remove(body)
+                        self.planets.remove(other)
+        self.planets.extend(merged)
+
+    def update_planet(self, planet):
+        ax = 0.0
+        ay = 0.0
+
+        for body in self.planets + self.stars:
+            if body is not planet:
+                delta_x = planet.state.x_pos - body.state.x_pos
+                delta_y = planet.state.y_pos - body.state.y_pos
+                distance = math.sqrt(delta_x ** 2 + delta_y ** 2)
+
+                force = STRENTH_OF_GRAVITY * planet.mass * body.mass / distance**2
+
+                ax += force * delta_x / distance
+                ay += force * delta_y / distance
+
+        planet.state.vx -= ax
+        planet.state.vy -= ay
+
+        planet.state.x_pos += planet.state.vx
+        planet.state.y_pos += planet.state.vy
 
     def merge(self, x, y):
         '''
@@ -165,12 +190,13 @@ class Universe():
         masses. New velocity is a bit trickier. We know that
         momentum must be conserved.
         '''
-        new_vx = x.mass * x.state.vx + y.mass + y.state.vx
-        new_vy = x.mass * x.state.vy + y.mass + y.state.vy
-        # NOTE: used position of x Planet, consider doing something else?
+        new_mass = x.mass + y.mass
+
+        new_vx = ((x.mass * x.state.vx) + (y.mass + y.state.vx)) / new_mass
+        new_vy = ((x.mass * x.state.vy) + (y.mass + y.state.vy)) / new_mass
+        # NOTE: uses position of x Planet, consider doing something else?
         new_state = State(x.state.x_pos, x.state.y_pos, new_vx, new_vy)
 
-        new_mass = x.mass + y.mass
         new_radius = int(Planet.radius_from_mass(new_mass))
 
         return Planet(new_state, new_radius)
